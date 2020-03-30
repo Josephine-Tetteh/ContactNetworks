@@ -40,10 +40,11 @@ Grp[is.na(Grp)] <- 15 # 70+ age-grp
 
 source("gennet.R")
 g <- genNet(N, age)
-plotNet(g)
-heatmap(M,Rowv = NA, Colv = NA)
-qqplot(degree(g), ncont, main="QQ Plot", ylab="Target contact distribution")
-qqplot(age, vertex_attr(g, "age"), main="QQ Plot", ylab="Target age distribution")
+
+# plotNet(g$g)
+# heatmap(M,Rowv = NA, Colv = NA)
+# qqplot(degree(g), ncont, main="QQ Plot", ylab="Target contact distribution")
+# qqplot(age, vertex_attr(g, "age"), main="QQ Plot", ylab="Target age distribution")
 
 # 
 # ![](./fig/ng1.png)

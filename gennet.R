@@ -45,7 +45,7 @@ genNet <- function(N=N, age=age, n.try=100) {
     freeI <- which(ncont > 0) # update free id
   }
   g <- set_vertex_attr(g, 'age', value=age)
-  return(g)
+  return(list(g=g, age=age))
 }
 genNet <- compiler::cmpfun(genNet)
 plotNet <- function(g, vs=log(degree(g)+2)*2, vc=vertex_attr(g, "age"), ly=layout_with_fr, ...) plot(g, vertex.size=vs, vertex.label=NA, edge.arrow.mode=0, layout=ly, vertex.color=vc, edge.color="gray90",...) 

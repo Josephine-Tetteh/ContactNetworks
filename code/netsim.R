@@ -10,6 +10,11 @@ netsim <- function(net=M, ni0=1, Vc=10^0.15, maxV = 72880400, tmax = 60, tStep =
     colnames(SIR) <- c("S", "I", "R", "D", "B", "In")
     S <- Matrix(0, pop, 8)
     colnames(S) <- c("D", "Tr", "Ti", "Td", "Dd", "Tb", "s", "Tv")
+  auc0 <- function(x, y, maxX=length(x)) {
+    x <- x[0:maxX]
+    y <- y[0:maxX]
+    return(sum(diff(x) * (head(y,-1)+tail(y,-1)))/2)
+  }
   fFate <- function(x) {
     myV <- vlist[[x]](t.inf)
     tVmax <- t.inf[which.max(myV)]
@@ -44,7 +49,7 @@ netsim <- function(net=M, ni0=1, Vc=10^0.15, maxV = 72880400, tmax = 60, tStep =
   i0 <- sample(ids, ni0)  # choose infected and update status
     nn <- length(neighbors(Mx, i0))
     message("\nIndex case ", i0, " infected with ", nn, " contacts!\n")
-    vlist[[i0]] <- getV(dx = S[i0, "Tv"])  # V function in i0
+    vlist[[i0]] <- getV(dx = unname(S[i0, "Tv"]))  # V function in i0
     dieAUC <- auc0(t.inf, vlist[[i0]](t.inf), 71)  # references AUC
     updateI(i0, tinf=0); SIR[1, "In"] <- 1 # incidences as of now
   # Vaccine before ---------------------------------------------------------
