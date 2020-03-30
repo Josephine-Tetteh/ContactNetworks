@@ -1,13 +1,15 @@
-genNet <- function(N=N, age=age, n.try=100) {
+genNetAgeGroup <- function(N=N, age=age, n.try=100) {
+  # This is modified to process age data with less details (5-years instead of 1-year)
+  # -----------------------------------------------------------------------
   require(igraph) # TODO: add check points for invalid inputs
   if (N < 100) warning("Considering increase N!")
   # Utils functions -------------------------------------------------------
   `%notin%` <- function(x, y) is.na(match(x, y, nomatch=NA_integer_))
   # pick age to make contacts according the prob. from contact matrix
-  pickAge <- function(x) sample(Mnmr, ncont[x], 1, M[, Grp[x]])
+  pickAge <- function(x) sample(Mnmr, ncont[x], 1, M[, age[x]])
   # pick id that is free and in respected age groups
   pickId <- function(x) {
-    pool <- freeI[freeI %in% which(Grp==apick[x])]
+    pool <- freeI[freeI %in% which(age==apick[x])]
     if (length(pool)==1) return(pool)
       else return(sample(pool, npick[x]))
   }
@@ -21,7 +23,7 @@ genNet <- function(N=N, age=age, n.try=100) {
     if (ncont[i] == 0) next # am I free?
     freeI <- freeI[freeI %notin% i] # exclude myself: no loop back
     # Check if enough peoples to contact ----------------------------------
-    freeA <- rle(sort(Grp[freeI])) #freenodes by age-grp
+    freeA <- rle(sort(age[freeI])) #freenodes by age-grp
     afree <- freeA$values  # age-grp that have freenodes
     nfree <- freeA$lengths  # of freenodes by ages
     isEnough <- noWay <- FALSE
