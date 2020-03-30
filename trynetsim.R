@@ -32,5 +32,4 @@ source("code/netsim.R")
 out <- netsim(net = M, tmax =365, pvac = 0)
 out
 
-SR$age
 
