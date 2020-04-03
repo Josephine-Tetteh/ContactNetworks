@@ -15,12 +15,12 @@ AgAbX <- function(t, x, parms) {
     with(as.list(c(parms, x)), {
         dI <- -deltaI*I
         dG <- (deltaI*I - G)/tauG
-        dA <- rA*G - deltaA*A
+        dA <- rA*G - 0.0263*A*I - deltaA*A
         list(c(dI,dG,dA))
     })
 }
 
-outA <- ode(c(I=5*10^7, G=0, A=0), seq(0, 365, .1), AgAbX, 10^pAgAbX)
+outA <- ode(c(I=5*10^7, G=0, A=0), seq(0, 365, .1), AgAbX, pAgAbX)
 
 lastYear <- cbind(seq(-365, 0, 0.1), rep(0, length(seq(-365, 0, 0.1))))
 twoYear <- rbind(lastYear, outA[,c("time", "A")])
