@@ -1,0 +1,5 @@
+[1] "0-18"  "19-50" "51-70" "70+"  
+Error in cut.default(df$Age, breaks = abreaks, labels = la1, right = FALSE) : 
+  'x' must be numeric
+Calls: cut -> cut.default
+Execution halted
