@@ -51,54 +51,7 @@ genNet <- compiler::cmpfun(genNet)
 plotNet <- function(g, vs=log(degree(g)+2)*2, vc=vertex_attr(g, "age"), ly=layout_with_fr, ...) plot(g, vertex.size=vs, vertex.label=NA, edge.arrow.mode=0, layout=ly, vertex.color=vc, edge.color="gray90",...) 
 plotNet2 <- function(g, vs=log(degree(g)+2)*2, vc=vertex_attr(g, "age"),  ...) plot(g, vertex.size=vs, vertex.label=NA, edge.arrow.mode=0, vertex.color="#00AFBB", edge.color="gray90",...) 
 ###############################
-N    <- 1000
-seed <- 123
-
-orderBy <- function(.data,index,...) as.data.frame(.data[order(.data[, index],...), ])
-
-## Steps
-
-#Assign age: depends on the target population age distribution
-
-SR1     <- dget("./data/Italy_age_distn.txt")  # Italy population by age
-if (!is.null(seed)) set.seed(seed)
-age           <- sample(SR1$age, N, TRUE, SR1$prob)
-
-#Assign contacts: depends on both target age and POLYMOD data
-agecont      <- orderBy(dget("./data/POLYMODtab1"), 1) # POLYMOD Tab.1
-agecont$rk   <- rank(agecont$age)  # Rank age-group by contact
-# POLYMODbreak <- c(0,4,9,14,19,29,39,49,59,69,100) 
-abreaks<-c(0,19,51,69,103)
-POLYMODbreak <- abreaks 
-ageGrp1 <- cut(age, breaks=POLYMODbreak, include.lowest=1)
-ageGrp <- as.numeric(ageGrp1) # mapping age to ageGrp
-agerk  <- sapply(ageGrp, function(x) agecont$rk[x==agecont$nmr])
-age    <- rev(orderBy(cbind(age, agerk), 2)[, 1]) # large to small
-
-#Sampling from contact distribution
-
-distCont <- dget("data/distCont")
-
-#distCont <- a_sum
-ncont    <- sort(sample(distCont$freq, N, 1, distCont$prob), TRUE)
-
-#Load contact matrix (as probability) POLYMOD data: averaging all countries
-
-M <- mx  # image(M)
-Mbrk <- abreaks
-Mnmr <- 1:4
-Grp  <- as.numeric(cut(age, breaks=Mbrk, include.lowest=1))
-
-## Run
-
-source("gennet.R")
-gr <- genNet(N, age)
-
-plotNet2(gr$g)
-qqplot(degree(gr$g), ncont, main="QQ Plot", ylab="Target contact distribution")
-qqplot(age, vertex_attr(gr$g, "age"), main="QQ Plot", ylab="Target age distribution")
-########################################
-# 
+ # 
 library(ggplot2)
 library(readxl)
 #library(lattice)
@@ -192,7 +145,58 @@ cdpl=ggplot(mtmx, aes(participants,contacts, fill=nval)) +
   scale_fill_gradient(low="#F3F8FB", high="dodgerblue") +
   guides(fill = guide_legend(title = ""))
 print(cdpl)
-dev.off()
+dev.off()                             
+                              
+###########################################                          
+                              
+N    <- 1000
+seed <- 123
+
+orderBy <- function(.data,index,...) as.data.frame(.data[order(.data[, index],...), ])
+
+## Steps
+
+#Assign age: depends on the target population age distribution
+
+SR1     <- dget("./data/Italy_age_distn.txt")  # Italy population by age
+if (!is.null(seed)) set.seed(seed)
+age           <- sample(SR1$age, N, TRUE, SR1$prob)
+
+#Assign contacts: depends on both target age and POLYMOD data
+agecont      <- orderBy(dget("./data/POLYMODtab1"), 1) # POLYMOD Tab.1
+agecont$rk   <- rank(agecont$age)  # Rank age-group by contact
+# POLYMODbreak <- c(0,4,9,14,19,29,39,49,59,69,100) 
+abreaks<-c(0,19,51,69,103)
+POLYMODbreak <- abreaks 
+ageGrp1 <- cut(age, breaks=POLYMODbreak, include.lowest=1)
+ageGrp <- as.numeric(ageGrp1) # mapping age to ageGrp
+agerk  <- sapply(ageGrp, function(x) agecont$rk[x==agecont$nmr])
+age    <- rev(orderBy(cbind(age, agerk), 2)[, 1]) # large to small
+
+#Sampling from contact distribution
+
+distCont <- dget("data/distCont")
+
+#distCont <- a_sum
+ncont    <- sort(sample(distCont$freq, N, 1, distCont$prob), TRUE)
+
+#Load contact matrix (as probability) POLYMOD data: averaging all countries
+
+M <- mx  # image(M)
+Mbrk <- abreaks
+Mnmr <- 1:4
+Grp  <- as.numeric(cut(age, breaks=Mbrk, include.lowest=1))
+
+## Run
+
+source("gennet.R")
+gr <- genNet(N, age)
+
+plotNet2(gr$g)
+qqplot(degree(gr$g), ncont, main="QQ Plot", ylab="Target contact distribution")
+qqplot(age, vertex_attr(gr$g, "age"), main="QQ Plot", ylab="Target age distribution")
+########################################
+
 ##################################################
 cases_Italy <- read_excel("data/cases_Italy.xlsx", 
                           col_types = c("text", "numeric"))
