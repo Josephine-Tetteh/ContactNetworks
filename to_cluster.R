@@ -71,7 +71,7 @@ colnames(agegrp_sum)<-c("grps","freq")
 agegrp_sum$agegrp_perc<- 100*(agegrp_sum$freq/sum(agegrp_sum$freq))
 #plot(agegrp_sum$grps,agegrp_sum$freq)
 
-barchart(freq~grps,agegrp_sum, xlab="Age group", ylab="Count")
+#barchart(freq~grps,agegrp_sum, xlab="Age group", ylab="Count")
 ######
 pdf("Agedist.pdf")
 p<-ggplot(data=agegrp_sum, aes(x=grps, y=freq)) +
