@@ -173,7 +173,7 @@ print(PL)
 dev.off()
 
 ###############
-N    <- 100
+N    <- 10000
 seed <- 123
 
 orderBy <- function(.data,index,...) as.data.frame(.data[order(.data[, index],...), ])
@@ -223,7 +223,7 @@ qqplot(age, vertex_attr(gr$g, "age"), main="QQ Plot", ylab="Target age distribut
 #
 Inf_from_net <- function(G,Vinit,p){ 
   
-  for(ti in 1:length(seq(1,21,1))){ 
+  for(ti in 1:length(seq(1,90,1))){ 
     # Precompute all outgoing graph adjacencies
     G$AdjList = get.adjlist(G,mode="out")
     
@@ -306,7 +306,7 @@ R0Ag <- function(G){
 }
 
 
-R0table = replicate(4, R0Ag(G))
+R0table = replicate(1000, R0Ag(G))
 
 
 nr0 = data.frame(c(unlist(R0table[1,])),c(unlist(R0table[2,])))
