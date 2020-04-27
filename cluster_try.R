@@ -322,10 +322,20 @@ dfr = data.frame(c(la1),c(tapply(nr0df2$val, nr0df2$ag, max)))
 colnames(dfr)<- c("valAg","val")
 
 pdf("R0PLOT.pdf")
-R0plot <- ggplot(data=dfr, aes(x=valAg, y=val)) +
+Rpl <- ggplot(data=dfr, aes(x=valAg, y=val)) +
   geom_bar(stat="identity", fill="steelblue") +
   labs(x="Age group", y = expression(R_0)) +
   theme_classic()
-print(R0plot)
+print(Rpl)
 dev.off()
+                 
+
+png("R0plot.png")
+Rplt <- ggplot(data=dfr, aes(x=valAg, y=val)) +
+  geom_bar(stat="identity", fill="steelblue") +
+  labs(x="Age group", y = expression(R_0)) +
+  theme_classic()
+print(Rplt)
+dev.off()
+
 
