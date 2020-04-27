@@ -1,4 +1,0 @@
-[1] "0-18"  "19-50" "51-70" "70+"  
-Error in barchart(freq ~ grps, agegrp_sum, xlab = "Age group", ylab = "Count") : 
-  could not find function "barchart"
-Execution halted
