@@ -222,8 +222,6 @@ qqplot(age, vertex_attr(gr$g, "age"), main="QQ Plot", ylab="Target age distribut
 ########################################
 #
 
-
-
 intdyn = function(v1,ti){ #v1 here is the newly infected node
   #dinf = df$AgeGroup[400]
   #l = which(la1==dinf)
@@ -331,14 +329,6 @@ intdyn = function(v1,ti){ #v1 here is the newly infected node
 }
 G<-gr$g
 
-
-
-
-
-
-
-
-
 gfunct <- function(G){
   G = gr$g
   GAge <- gr$age
@@ -353,7 +343,6 @@ gfunct <- function(G){
   nbS = c(totpop)
   nbI = c(1)
   nbR = c(0)
-  probs_inf = c(0.01,0.01,0.1,0.2,0.3,0.3,0.3,0.25,0.2,0.15,0.1,0.05,0.01,0.01)
   NS = c()
   SS = c()
   MS = c()
@@ -361,7 +350,7 @@ gfunct <- function(G){
   ICU = c()
   RM = c()
   SU = c()
-  timing = 30
+  timing = 120
   for (time in 1:length(seq(1,timing,1))){
     n = vin
     #print(n)
@@ -373,8 +362,6 @@ gfunct <- function(G){
       p=0.15
       new_state = sample(c("S","NS"),1,prob = c(p,1-p))
       if (V(G)[nb]$state == "S" & new_state == "NS"){
-        # r = runif(1)
-        # if(r < probs_inf[day_inf]){
         V(G)[nb]$state = "NS"
         # }
       }
@@ -395,6 +382,6 @@ gfunct <- function(G){
   return(data.frame(NS,SS,RM,ICU,HP,MS))
 }
 
-reps = replicate(50,gfunct(G))
+reps = replicate(100,gfunct(G))
 
 write.table(reps,"repsSymp.csv")
