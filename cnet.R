@@ -458,14 +458,14 @@ for (ik in 1:ncol(reps)) {
 }
 
 for (i in 1:length(seq(1,ncol(reps),1))) {
-  file_name = paste("rp_plot_", i, ".tiff", sep="")
+  file_name = paste("r0p_plot_", i, ".tiff", sep="")
   tiff(file_name)
   print(plot_list[[i]])
   dev.off()
 }
 
 # Another option: create pdf where each page is a separate plot.
-pdf("prplots.pdf")
+pdf("pr0plots.pdf")
 for (i in 1:length(seq(1,ncol(reps),1))) {
   print(plot_list[[i]])
 }
@@ -487,7 +487,7 @@ tapply(nr0df2$val, nr0df2$ag, max)
 dfr = data.frame(c(la1),c(tapply(nr0df2$val, nr0df2$ag, max)))
 colnames(dfr)<- c("valAg","val")
 
-pdf("R0PLOT.pdf")
+pdf("netR0PLOT.pdf")
 R0plot <- ggplot(data=dfr, aes(x=valAg, y=val)) +
   geom_bar(stat="identity", fill="steelblue") +
   labs(x="Age group", y = expression(R_0)) +
@@ -496,7 +496,7 @@ print(R0plot)
 dev.off()
 
 
-png("R0plot.png")
+png("netR0plot.png")
 R0plot <- ggplot(data=dfr, aes(x=valAg, y=val)) +
   geom_bar(stat="identity", fill="steelblue") +
   labs(x="Age group", y = expression(R_0)) +
