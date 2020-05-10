@@ -419,10 +419,13 @@ glist
 df=data.frame(glist$SU,glist$NS,glist$SS,glist$RM,glist$ICU,glist$HP,glist$MS,glist$Time)
 colnames(df)<- c("SU","NS","SS","RM","ICU","HP","MS","Time")
 mdf2 = melt(df, id.vars = "Time")
-ggplot(mdf2, aes(Time,value, color=variable)) +
+
+pdf("gplot1.pdf")
+gpl = ggplot(mdf2, aes(Time,value, color=variable)) +
   geom_line() +
   theme_bw()
-
+print(gpl)
+dev.off()
 
 #############################3
 rep = replicate(4,gfunct(G))
