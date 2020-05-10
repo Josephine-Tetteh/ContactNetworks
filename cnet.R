@@ -4,7 +4,7 @@ require(igraph)
 require(readxl)
 #library(lattice)
 require(reshape2)
-#library(tidyverse)
+require(tidyverse)
 
 
 
