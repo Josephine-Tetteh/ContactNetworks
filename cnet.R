@@ -1,10 +1,11 @@
+require(tidyverse)
 require(readr)
 require(ggplot2)
 require(igraph)
 require(readxl)
 #library(lattice)
 require(reshape2)
-require(tidyverse)
+
 
 
 
@@ -110,13 +111,14 @@ part_grp = as.data.frame(table(part2$pt_grp))
 
 lli=lapply(seq_along(part2$part_age), function(i)rep(part2$part_age[i], part2$part_nocont[i]))
 cdata$p_ages = unlist(lli)
-ages_con = list()
+cdata$ages_con = NA
 for (i in 1:length(cdata$cnt_age_exact)){
   if (is.na(cdata$cnt_age_exact[i])==FALSE){
     cdata$ages_con[i] <- cdata$cnt_age_exact[i]}
   else {cdata$ages_con[i] <- cdata$cnt_age_est_max[i]}
   # else {cdata$ages_con[i] <- sample(seq(cdata$cnt_age_est_min[i],cdata$cnt_age_est_max[i]),1)}
-}
+  }
+
 
 cdata$cnt_grp <- cut(cdata$ages_con, breaks = abreaks,labels=la1, right = FALSE)
 c_grp = as.data.frame(table(cdata$ages_con))
@@ -153,10 +155,9 @@ pcplot = ggplot(mtmx, aes(participants,contacts, fill=nval)) +
 print(pcplot)
 dev.off()
 ##################################################
-cases_Italy <- read_excel("data/cases_Italy.xlsx", 
-                          col_types = c("text", "numeric"))
-
-summary(cases_Italy$Number)
+# cases_Italy <- read_excel("data/cases_Italy.xlsx", 
+#                           col_types = c("text", "numeric"))
+# summary(cases_Italy$Number)
 
 ######################################
 
@@ -218,7 +219,7 @@ Grp  <- as.numeric(cut(age, breaks=Mbrk, include.lowest=1))
 #source("gennet.R")
 gr <- genNet(N, age)
 
-plotNet2(gr$g)
+plotNet(gr$g)
 qqplot(degree(gr$g), ncont, main="QQ Plot", ylab="Target contact distribution")
 qqplot(age, vertex_attr(gr$g, "age"), main="QQ Plot", ylab="Target age distribution")
 ########################################
@@ -458,14 +459,14 @@ for (ik in 1:ncol(reps)) {
 }
 
 for (i in 1:length(seq(1,ncol(reps),1))) {
-  file_name = paste("r0p_plot_", i, ".tiff", sep="")
+  file_name = paste("rp_plot_", i, ".tiff", sep="")
   tiff(file_name)
   print(plot_list[[i]])
   dev.off()
 }
 
 # Another option: create pdf where each page is a separate plot.
-pdf("pr0plots.pdf")
+pdf("prplots.pdf")
 for (i in 1:length(seq(1,ncol(reps),1))) {
   print(plot_list[[i]])
 }
@@ -487,7 +488,7 @@ tapply(nr0df2$val, nr0df2$ag, max)
 dfr = data.frame(c(la1),c(tapply(nr0df2$val, nr0df2$ag, max)))
 colnames(dfr)<- c("valAg","val")
 
-pdf("netR0PLOT.pdf")
+pdf("R0PLOT.pdf")
 R0plot <- ggplot(data=dfr, aes(x=valAg, y=val)) +
   geom_bar(stat="identity", fill="steelblue") +
   labs(x="Age group", y = expression(R_0)) +
@@ -496,7 +497,7 @@ print(R0plot)
 dev.off()
 
 
-png("netR0plot.png")
+png("R0plot.png")
 R0plot <- ggplot(data=dfr, aes(x=valAg, y=val)) +
   geom_bar(stat="identity", fill="steelblue") +
   labs(x="Age group", y = expression(R_0)) +
