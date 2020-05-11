@@ -7,7 +7,7 @@ require(readxl)
 require(reshape2)
 require(magrittr)
 require(purrr)
-
+require(dplyr)
 
 
 genNet <- function(N=N, age=age, n.try=100) {
@@ -177,7 +177,7 @@ print(PL)
 dev.off()
 
 ###############
-N    <- 1000
+N    <- 10000
 seed <- 123
 
 orderBy <- function(.data,index,...) as.data.frame(.data[order(.data[, index],...), ])
@@ -343,7 +343,7 @@ gfunct <- function(G){
   ICU = c()
   RM = c()
   SU = c()
-  timing = 30
+  timing = 120
   mglist = list(G)
   infcount = list()
   tcount = 0
@@ -421,7 +421,7 @@ df=data.frame(glist$SU,glist$NS,glist$SS,glist$RM,glist$ICU,glist$HP,glist$MS,gl
 colnames(df)<- c("SU","NS","SS","RM","ICU","HP","MS","Time")
 mdf2 = melt(df, id.vars = "Time")
 
-pdf("gplot1.pdf")
+pdf("cgplot1.pdf")
 gpl = ggplot(mdf2, aes(Time,value, color=variable)) +
   geom_line() +
   theme_bw()
@@ -429,10 +429,10 @@ print(gpl)
 dev.off()
 
 #############################3
-rep = replicate(4,gfunct(G))
+rep = replicate(20,gfunct(G))
 reps = rep[1:8,]
 
-write.table(rep,"repsdata.csv")
+write.table(rep,"crepsdata.csv")
 
 myplot <- function(data,title){
   ggplot(data, aes(Time,value, color=variable)) +
@@ -463,14 +463,14 @@ for (ik in 1:ncol(reps)) {
 }
 
 for (i in 1:length(seq(1,ncol(reps),1))) {
-  file_name = paste("rp_plot_", i, ".tiff", sep="")
+  file_name = paste("crp_plot_", i, ".tiff", sep="")
   tiff(file_name)
   print(plot_list[[i]])
   dev.off()
 }
 
 # Another option: create pdf where each page is a separate plot.
-pdf("prplots.pdf")
+pdf("cprplots.pdf")
 for (i in 1:length(seq(1,ncol(reps),1))) {
   print(plot_list[[i]])
 }
@@ -492,7 +492,7 @@ tapply(nr0df2$val, nr0df2$ag, max)
 dfr = data.frame(c(la1),c(tapply(nr0df2$val, nr0df2$ag, max)))
 colnames(dfr)<- c("valAg","val")
 
-pdf("R0PLOT.pdf")
+pdf("cR0PLOT.pdf")
 R0plot <- ggplot(data=dfr, aes(x=valAg, y=val)) +
   geom_bar(stat="identity", fill="steelblue") +
   labs(x="Age group", y = expression(R_0)) +
@@ -501,7 +501,7 @@ print(R0plot)
 dev.off()
 
 
-png("R0plot.png")
+png("cR0plot.png")
 R0plot <- ggplot(data=dfr, aes(x=valAg, y=val)) +
   geom_bar(stat="identity", fill="steelblue") +
   labs(x="Age group", y = expression(R_0)) +

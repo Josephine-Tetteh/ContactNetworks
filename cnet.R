@@ -1,4 +1,6 @@
-require(tidyverse)
+#require(tidyverse)
+require(purrr)
+require(magrittr)
 require(readr)
 require(ggplot2)
 require(igraph)
