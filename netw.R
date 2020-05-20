@@ -8,6 +8,7 @@ require(reshape2)
 require(magrittr)
 require(purrr)
 require(dplyr)
+#require(compiler)
 
 
 genNet <- function(N=N, age=age, n.try=100) {
@@ -80,24 +81,24 @@ agegrp_sum$agegrp_perc<- 100*(agegrp_sum$freq/sum(agegrp_sum$freq))
 
 #barchart(freq~grps,agegrp_sum, xlab="Age group", ylab="Count")
 ######
-pdf("age distn plot.pdf")
-p<-ggplot(data=agegrp_sum, aes(x=grps, y=freq)) +
-  geom_bar(stat="identity", fill="steelblue") +
-  labs(title="Age distribution", 
-       x="Age group", y = "Count") +
-  theme_classic()
-print(p)
-dev.off()
-# Horizontal bar plot
-#p + coord_flip()
-
-################################################
-############ GROUPING ASPECT ###################
-
-part2 <- read_excel("data/part2.xlsx", col_types = c("numeric","numeric"))
-cdata  <- read_excel("data/contacts_data.xlsx", 
-                     col_types = c("numeric", "numeric", "numeric", 
-                                   "numeric", "numeric","text"))
+# pdf("m5.pdf")
+# p<-ggplot(data=agegrp_sum, aes(x=grps, y=freq)) +
+#   geom_bar(stat="identity", fill="steelblue") +
+#   labs(title="Age distribution", 
+#        x="Age group", y = "Count") +
+#   theme_classic()
+# print(p)
+# dev.off()
+# # Horizontal bar plot
+# #p + coord_flip()
+# 
+# ################################################
+# ############ GROUPING ASPECT ###################
+# 
+ part2 <- read_excel("data/part2.xlsx", col_types = c("numeric","numeric"))
+ cdata  <- read_excel("data/contacts_data.xlsx", 
+                      col_types = c("numeric", "numeric", "numeric", 
+                                    "numeric", "numeric","text"))
 mydata = c()
 for (i in part2$part_id){
   mydata$dist[i]= length(which(cdata$part_id==i))
@@ -119,62 +120,62 @@ for (i in 1:length(cdata$cnt_age_exact)){
   else {cdata$ages_con[i] <- cdata$cnt_age_est_max[i]}
   # else {cdata$ages_con[i] <- sample(seq(cdata$cnt_age_est_min[i],cdata$cnt_age_est_max[i]),1)}
 }
-
-
-cdata$cnt_grp <- cut(cdata$ages_con, breaks = abreaks,labels=la1, right = FALSE)
+# 
+# 
+ cdata$cnt_grp <- cut(cdata$ages_con, breaks = abreaks,labels=la1, right = FALSE)
 c_grp = as.data.frame(table(cdata$ages_con))
 c_grp$ct_grp <- cut(as.numeric(c_grp$Var1), breaks = abreaks,labels=la1, right = FALSE)
 c_sum <- aggregate(c_grp$Freq, by=list(Category=c_grp$ct_grp), FUN=sum)
 cdata$c_grp_pro=ave(cdata$ages_con,cdata$cnt_grp)
-
-#
-cdata$pt_grp <- cut(cdata$p_ages, breaks = abreaks,labels=la1, right = FALSE)
-p_grp = as.data.frame(table(cdata$p_ages))
-p_grp$p_grp <- cut(as.numeric(p_grp$Var1), breaks = abreaks,labels=la1, right = FALSE)
-p_sum <- aggregate(p_grp$Freq, by=list(Category=p_grp$p_grp), FUN=sum)
-cdata$p_prob <- cdata$p_ages/length(cdata$p_ages)
-cdata$p_grp_pro=ave(cdata$p_ages,cdata$pt_grp)
-p_sum$perc_ita = c(1.6,27,34.2,37.2)
-#
-part2$part_pro = part2$part_nocont/length(part2$part_nocont)
-#
-c_time = as.data.frame(table(cdata$duration_multi))
-p_time <- aggregate(p_grp$Freq, by=list(Category=p_grp$p_), FUN=sum)
-
-#
+# 
+# #
+ cdata$pt_grp <- cut(cdata$p_ages, breaks = abreaks,labels=la1, right = FALSE)
+# p_grp = as.data.frame(table(cdata$p_ages))
+# p_grp$p_grp <- cut(as.numeric(p_grp$Var1), breaks = abreaks,labels=la1, right = FALSE)
+# p_sum <- aggregate(p_grp$Freq, by=list(Category=p_grp$p_grp), FUN=sum)
+# cdata$p_prob <- cdata$p_ages/length(cdata$p_ages)
+# cdata$p_grp_pro=ave(cdata$p_ages,cdata$pt_grp)
+# p_sum$perc_ita = c(1.6,27,34.2,37.2)
+# #
+# part2$part_pro = part2$part_nocont/length(part2$part_nocont)
+# #
+# c_time = as.data.frame(table(cdata$duration_multi))
+# p_time <- aggregate(p_grp$Freq, by=list(Category=p_grp$p_), FUN=sum)
+# 
+# #
 mx <- with(cdata, table(participants=cdata$pt_grp,contacts=cdata$cnt_grp))
-t(mx)
-
-mtmx = melt(mx)
-mtmx$nval = mtmx$value/sum(c_sum$x)
-
-pdf("partcont.pdf")
-pcplot = ggplot(mtmx, aes(participants,contacts, fill=nval)) + 
-  geom_raster()+
-  scale_fill_gradient(low="#F3F8FB", high="dodgerblue") +
-  guides(fill = guide_legend(title = ""))
-print(pcplot)
-dev.off()
-##################################################
-# cases_Italy <- read_excel("data/cases_Italy.xlsx", 
-#                           col_types = c("text", "numeric"))
-# summary(cases_Italy$Number)
-
-######################################
-
-a_sum <- as.data.frame(table(part2$part_nocont))
-a_sum$prob <- 100*a_sum$Freq/sum(a_sum$Freq)
-
-pdf("contdist.pdf")
-PL<-ggplot(data=a_sum[1:50,], aes(x=Var1, y=Freq)) +
-  geom_bar(stat="identity", fill="steelblue") +
-  labs(title="Contact distribution", 
-       x="Number of contacts", y = "Frequency") +
-  scale_x_discrete(breaks=c("10","20","30","40","50"),
-                   labels=c("10","20","30","40","50"))+
-  theme_classic()
-print(PL)
-dev.off()
+# t(mx)
+# 
+# mtmx = melt(mx)
+# mtmx$nval = mtmx$value/sum(c_sum$x)
+# # 
+# # pdf("m6.pdf")
+# # pcplot = ggplot(mtmx, aes(participants,contacts, fill=nval)) + 
+# #   geom_raster()+
+# #   scale_fill_gradient(low="#F3F8FB", high="dodgerblue") +
+# #   guides(fill = guide_legend(title = ""))
+# # print(pcplot)
+# # dev.off()
+# ##################################################
+# # cases_Italy <- read_excel("data/cases_Italy.xlsx", 
+# #                           col_types = c("text", "numeric"))
+# # summary(cases_Italy$Number)
+# 
+# ######################################
+# 
+# a_sum <- as.data.frame(table(part2$part_nocont))
+# a_sum$prob <- 100*a_sum$Freq/sum(a_sum$Freq)
+# 
+# pdf("m7.pdf")
+# PL<-ggplot(data=a_sum[1:50,], aes(x=Var1, y=Freq)) +
+#   geom_bar(stat="identity", fill="steelblue") +
+#   labs(title="Contact distribution", 
+#        x="Number of contacts", y = "Frequency") +
+#   scale_x_discrete(breaks=c("10","20","30","40","50"),
+#                    labels=c("10","20","30","40","50"))+
+#   theme_classic()
+# print(PL)
+# dev.off()
 
 ###############
 N    <- 1000
@@ -220,9 +221,13 @@ Grp  <- as.numeric(cut(age, breaks=Mbrk, include.lowest=1))
 #source("gennet.R")
 gr <- genNet(N, age)
 
-plotNet(gr$g)
-qqplot(degree(gr$g), ncont, main="QQ Plot", ylab="Target contact distribution")
-qqplot(age, vertex_attr(gr$g, "age"), main="QQ Plot", ylab="Target age distribution")
+pdf("m1.pdf")
+netp = plotNet(gr$g)
+print(netp)
+dev.off()
+# 
+# qqplot(degree(gr$g), ncont, main="QQ Plot", ylab="Target contact distribution")
+# qqplot(age, vertex_attr(gr$g, "age"), main="QQ Plot", ylab="Target age distribution")
 ########################################
 
 intdyn = function(v1,ti){ #v1 here is the newly infected node
@@ -324,12 +329,15 @@ intdyn = function(v1,ti){ #v1 here is the newly infected node
   
   return(V(G)[v1]$state)
 }
-G<-gr$g
+
+#intdyn <- cmpfun(intdyn1)
+
 
 gfunct <- function(G){
   G$AdjList = get.adjlist(G,mode="out")
   totpop = length(V(G))
   vin = sample(totpop-1,1)
+ # vin=3
   V(G)$state = "S"
   V(G)[vin]$state = "NS"
   V(G)$duration = 0
@@ -351,12 +359,13 @@ gfunct <- function(G){
   all_inf = NULL
   tog = c()
   to = c()
-  for (time in 1:length(seq(1,timing,1))){
+  p = 0.15
+  Time = 1:length(seq(1,timing,1))
+  for (time in Time){
     new_inf = NULL
     for (n in m_inf){
       daily_contacts <- G$AdjList[[n]]
       for (nb in daily_contacts){
-        p = 0.15
         new_state = sample(c("S","NS"),1,prob = c(p,1-p))
         if (V(G)[nb]$state == "S" & new_state == "NS"){
           V(G)[nb]$num = 2
@@ -368,11 +377,10 @@ gfunct <- function(G){
     to = c(to,new_inf)
     tog = c(vin,to)
     V(G)[tog]$duration = V(G)[tog]$duration + 1
+   # for (ji in tog) {
+    #V(G)[tog]$state = intdyn(tog,V(G)[tog]$duration)
+    #}
     V(G)[tog]$state=lapply(tog, function(x) intdyn(x,V(G)[x]$duration))
-   
-# for (ji in tog) {
-  #    V(G)[ji]$state = intdyn(ji,V(G)[ji]$duration)
- #   }
     
     tcount <- tcount + 1
     SU[tcount] = length(which(V(G)$state == "S")) 
@@ -385,9 +393,9 @@ gfunct <- function(G){
     
     mglist[[tcount]] = G
     
-    infcount[[tcount]] = new_inf
+    #infcount[[tcount]] = new_inf
   }
-  Time=1:length(seq(1,timing,1))
+  
   ############ R0
   GAge <- gr$age
   dfGAg <- data.frame(cut(GAge, breaks = abreaks,labels=la1, right = FALSE))
@@ -395,54 +403,60 @@ gfunct <- function(G){
   VAge = GAge[vin]
   VAg = which(la1==dfGAg$agegrps[vin])
   Glist = mglist
-  dif = V(Glist[[1]])$num - V(tail(Glist,1)[[1]])$num
-  ng <- Glist[[1]] %>%
-    set_vertex_attr("aux", value = dif)
+  # dif = V(Glist[[1]])$num - V(tail(Glist,1)[[1]])$num
+  # ng <- Glist[[1]] %>%
+  #   set_vertex_attr("aux", value = dif)
   ###################################### 
   
+  
+  
   R0net <- function(net = gr$g, All=FALSE) {
-    n  <- igraph::delete.vertices(net, which(V(ng)$aux==0))
+    n  <- igraph::delete.vertices(net, which(V(tail(Glist,1)[[1]])$num==1))
     n  <- igraph::as.directed(n, mode = c("arbitrary"))
     dg <- igraph::degree(n,  mode='out')
     if (All==TRUE) r0 <- dg
     else r0 <- mean(dg)
     return(list(r0,n))
   }
-  
+
   fro = R0net(G)
-  
+
   return(list(SU=SU,NS=NS,SS=SS,RM=RM,ICU=ICU,HP=HP,MS=MS,Time=Time,R0 = fro[[1]],VAg = VAg,vin = vin))
 }
+
+#gfunct <- cmpfun(gfuncta)
 
 G = gr$g
 
 glist = gfunct(G)
 #glist
 
-df=data.frame(glist$SU,glist$NS,glist$SS,glist$RM,glist$ICU,glist$HP,glist$MS,glist$Time)
-colnames(df)<- c("SU","NS","SS","RM","ICU","HP","MS","Time")
-mdf2 = melt(df, id.vars = "Time")
-
-pdf("cgplot1.pdf")
-gpl = ggplot(mdf2, aes(Time,value, color=variable)) +
-  geom_line() +
-  theme_bw()
-print(gpl)
-dev.off()
-
-#############################3
+# df=data.frame(glist$SU,glist$NS,glist$SS,glist$RM,glist$ICU,glist$HP,glist$MS,glist$Time)
+# colnames(df)<- c("SU","NS","SS","RM","ICU","HP","MS","Time")
+# mdf2 = melt(df, id.vars = "Time")
+# colnames(mdf2)<- c("Time","variable","Population")
+# 
+# pdf("m2.pdf")
+# gpl = ggplot(mdf2, aes(Time,Population, color=variable)) +
+#   geom_line() +
+#   theme_bw()
+# print(gpl)
+# dev.off()
+# 
+# #############################3
 rep = replicate(10,gfunct(G))
 reps = rep[1:8,]
 
-write.table(rep,"crepsdata.csv")
-
-myplot <- function(data,title){
-  ggplot(data, aes(Time,value, color=variable)) +
+# 
+# write.table(rep,"data1.csv")
+# 
+myplot <- function(data){
+  ggplot(data, aes(Time,Population, color=variable)) +
     geom_line() +
-    labs(title = title)+
+   # labs(title = title)+
     theme_bw()
 }
-
+# 
 lo = c()
 lo2 = c()
 lo3 = c()
@@ -451,32 +465,60 @@ tml=list()
 mtl4 = list()
 mlti = list()
 plot_list = list()
+qp = list()
 for (ik in 1:ncol(reps)) {
   lo = list(reps[,ik])
   #print(lo)
   lo2 <- map(lo,~data.frame(.))
-  lo3 <-map_df(lo2,~mutate_all(.,as.numeric)) 
+  lo3 <-map_df(lo2,~mutate_all(.,as.numeric))
   lo4 <-as_tibble(lo3)
   tml[ik] = list(lo4)
   mtl4 = melt(tml[ik], id.vars = "Time")
+  colnames(mtl4)<- c("Time","variable","Population")
   mlti[ik] = list(mtl4)
-  p <- myplot(mtl4,ik)
-  plot_list[[ik]] = p
+  #p <- myplot(mlti,1)
+  #plot_list[[ik]] = p
+  p <- myplot(mlti[[1]]) 
+  qp[[ik]] = geom_line(mlti[[ik]], mapping=aes(Time,Population, color=variable))
+  np = p + qp
+  #print(np)
 }
+pdf("nap.pdf")
+print(np)
+dev.off()
+# for (i in 1:length(seq(1,ncol(reps),1))) {
+#   file_name = paste("m9_", i, ".tiff", sep="")
+#   tiff(file_name)
+#   print(plot_list[[i]])
+#   dev.off()
+# }
 
-for (i in 1:length(seq(1,ncol(reps),1))) {
-  file_name = paste("crp_plot_", i, ".tiff", sep="")
-  tiff(file_name)
-  print(plot_list[[i]])
-  dev.off()
-}
+# # Another option: create pdf where each page is a separate plot.
+# pdf("m3.pdf")
+# for (i in 1:length(seq(1,ncol(reps),1))) {
+#   print(plot_list[[i]])
+# }
+# dev.off()
 
-# Another option: create pdf where each page is a separate plot.
-pdf("cprplots.pdf")
-for (i in 1:length(seq(1,ncol(reps),1))) {
-  print(plot_list[[i]])
-}
+
+R0table = rep[9:11,]
+nr0 = data.frame(c(unlist(R0table[1,])),c(unlist(R0table[2,])))
+colnames(nr0) = c("val","ag")
+nr0df = as.data.frame(nr0)
+
+nr0df2 = nr0df[order(nr0df$ag,nr0df$val),]
+plot(nr0df2$ag,nr0df2$val)
+
+dfr = data.frame(c(la1),c(tapply(nr0df2$val, nr0df2$ag, max)))
+dfr
+colnames(dfr)<- c("valAg","val")
+
+pdf("m4.pdf")
+R0plot <- ggplot(data=dfr, aes(x=valAg, y=val)) +
+  geom_bar(stat="identity", fill="steelblue") +
+  labs(x="Age group", y = expression(R_0)) +
+  theme_classic()
+print(R0plot)
 dev.off()
 
-##################################################
-########## R0 ESTIMATES ###############
+

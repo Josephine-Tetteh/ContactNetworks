@@ -10,6 +10,7 @@ require(purrr)
 require(dplyr)
 
 
+
 genNet <- function(N=N, age=age, n.try=100) {
   require(igraph) # TODO: add check points for invalid inputs
   if (N < 100) warning("Considering increase N!")
@@ -80,7 +81,7 @@ agegrp_sum$agegrp_perc<- 100*(agegrp_sum$freq/sum(agegrp_sum$freq))
 
 #barchart(freq~grps,agegrp_sum, xlab="Age group", ylab="Count")
 ######
-pdf("age distn plot.pdf")
+pdf("m5.pdf")
 p<-ggplot(data=agegrp_sum, aes(x=grps, y=freq)) +
   geom_bar(stat="identity", fill="steelblue") +
   labs(title="Age distribution", 
@@ -148,7 +149,7 @@ t(mx)
 mtmx = melt(mx)
 mtmx$nval = mtmx$value/sum(c_sum$x)
 
-pdf("partcont.pdf")
+pdf("m6.pdf")
 pcplot = ggplot(mtmx, aes(participants,contacts, fill=nval)) + 
   geom_raster()+
   scale_fill_gradient(low="#F3F8FB", high="dodgerblue") +
@@ -165,7 +166,7 @@ dev.off()
 a_sum <- as.data.frame(table(part2$part_nocont))
 a_sum$prob <- 100*a_sum$Freq/sum(a_sum$Freq)
 
-pdf("contdist.pdf")
+pdf("m7.pdf")
 PL<-ggplot(data=a_sum[1:50,], aes(x=Var1, y=Freq)) +
   geom_bar(stat="identity", fill="steelblue") +
   labs(title="Contact distribution", 
@@ -177,7 +178,7 @@ print(PL)
 dev.off()
 
 ###############
-N    <- 1000
+N    <- 10000
 seed <- 123
 
 orderBy <- function(.data,index,...) as.data.frame(.data[order(.data[, index],...), ])
@@ -220,7 +221,11 @@ Grp  <- as.numeric(cut(age, breaks=Mbrk, include.lowest=1))
 #source("gennet.R")
 gr <- genNet(N, age)
 
-plotNet(gr$g)
+pdf("nm1.pdf")
+netp = plotNet(gr$g)
+print(netp)
+dev.off()
+
 qqplot(degree(gr$g), ncont, main="QQ Plot", ylab="Target contact distribution")
 qqplot(age, vertex_attr(gr$g, "age"), main="QQ Plot", ylab="Target age distribution")
 ########################################
@@ -356,7 +361,7 @@ gfunct <- function(G){
     for (n in m_inf){
       daily_contacts <- G$AdjList[[n]]
       for (nb in daily_contacts){
-        p = 0.15
+        p = 0.5
         new_state = sample(c("S","NS"),1,prob = c(p,1-p))
         if (V(G)[nb]$state == "S" & new_state == "NS"){
           V(G)[nb]$num = 2
@@ -368,11 +373,9 @@ gfunct <- function(G){
     to = c(to,new_inf)
     tog = c(vin,to)
     V(G)[tog]$duration = V(G)[tog]$duration + 1
-    V(G)[tog]$state=lapply(tog, function(x) intdyn(x,V(G)[x]$duration))
-   
-# for (ji in tog) {
-  #    V(G)[ji]$state = intdyn(ji,V(G)[ji]$duration)
- #   }
+    for (ji in tog) {
+      V(G)[ji]$state = intdyn(ji,V(G)[ji]$duration)
+    }
     
     tcount <- tcount + 1
     SU[tcount] = length(which(V(G)$state == "S")) 
@@ -401,7 +404,7 @@ gfunct <- function(G){
   ###################################### 
   
   R0net <- function(net = gr$g, All=FALSE) {
-    n  <- igraph::delete.vertices(net, which(V(ng)$aux==0))
+    n  <- igraph::delete.vertices(net, which(V(tail(Glist,1)[[1]])$num==1))
     n  <- igraph::as.directed(n, mode = c("arbitrary"))
     dg <- igraph::degree(n,  mode='out')
     if (All==TRUE) r0 <- dg
@@ -422,19 +425,20 @@ glist = gfunct(G)
 df=data.frame(glist$SU,glist$NS,glist$SS,glist$RM,glist$ICU,glist$HP,glist$MS,glist$Time)
 colnames(df)<- c("SU","NS","SS","RM","ICU","HP","MS","Time")
 mdf2 = melt(df, id.vars = "Time")
+colnames(mdf2)<- c("Time","variable","Population")
 
-pdf("cgplot1.pdf")
-gpl = ggplot(mdf2, aes(Time,value, color=variable)) +
+pdf("nm2.pdf")
+gpl = ggplot(mdf2, aes(Time,Population, color=variable)) +
   geom_line() +
   theme_bw()
 print(gpl)
 dev.off()
 
 #############################3
-rep = replicate(10,gfunct(G))
+rep = replicate(5,gfunct(G))
 reps = rep[1:8,]
 
-write.table(rep,"crepsdata.csv")
+write.table(rep,"ndata1.csv")
 
 myplot <- function(data,title){
   ggplot(data, aes(Time,value, color=variable)) +
@@ -465,18 +469,16 @@ for (ik in 1:ncol(reps)) {
 }
 
 for (i in 1:length(seq(1,ncol(reps),1))) {
-  file_name = paste("crp_plot_", i, ".tiff", sep="")
+  file_name = paste("nm9_", i, ".tiff", sep="")
   tiff(file_name)
   print(plot_list[[i]])
   dev.off()
 }
 
 # Another option: create pdf where each page is a separate plot.
-pdf("cprplots.pdf")
+pdf("nm3.pdf")
 for (i in 1:length(seq(1,ncol(reps),1))) {
   print(plot_list[[i]])
 }
 dev.off()
 
-##################################################
-########## R0 ESTIMATES ###############
