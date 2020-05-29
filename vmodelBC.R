@@ -8,7 +8,7 @@ require(reshape2)
 require(magrittr)
 require(purrr)
 require(dplyr)
-require(compiler)
+#require(compiler)
 
 
 genNet <- function(N=N, age=age, n.try=100) {
