@@ -178,7 +178,7 @@ mx <- with(cdata, table(participants=cdata$pt_grp,contacts=cdata$cnt_grp))
 # dev.off()
 
 ###############
-N    <- 1000
+N    <- 10000
 
 seed <- 123
 

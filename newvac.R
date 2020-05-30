@@ -222,7 +222,7 @@ Grp  <- as.numeric(cut(age, breaks=Mbrk, include.lowest=1))
 #source("gennet.R")
 gr <- genNet(N, age)
 
-pdf("m1.pdf")
+pdf("vacm1.pdf")
 netp = plotNet(gr$g)
 print(netp)
 dev.off()
@@ -337,10 +337,9 @@ intdyn = function(v1,ti){ #v1 here is the newly infected node
 
 gfunct <- function(G){
   G$AdjList = get.adjlist(G,mode="out")
+  vacgroup = which(as.numeric(summary(G$AdjList)[,1]) > 10)
   totpop = length(V(G))
-  vin = sample(totpop-1,1) # take a random person
-  vacin = sample(totpop-1,50)
-  vacgroup = unlist(lapply(vacin, function(x) neighbors(G,x))) #which(as.numeric(summary(G$AdjList)[,1]) > 10)
+  vin = sample(totpop-1,1)
   #vin= 51
   V(G)$state = "S"
   V(G)$duration = 0
@@ -348,7 +347,7 @@ gfunct <- function(G){
   V(G)[vin]$state = "NS"
   V(G)[vin]$duration = 1
   V(G)[vin]$num = 3
-  V(G)[vacgroup]$state = "RM"
+  V(G)[vacgroup]$state = 'RM'
   #V(G)[vacgroup]$num = 0
   V(G)[vacgroup]$duration = 25
   # 
@@ -376,10 +375,10 @@ gfunct <- function(G){
     for (n in m_inf){
       daily_contacts <- G$AdjList[[n]]
       if(n %in% vacgroup==TRUE){
-        # p = 0
+       # p = 0
         new_state = "S"
         #new_inf = c(new_inf,nb)
-        # break
+       # break
       } else{
         p = 0.15
         new_state =  sample(c("S","NS"),1,prob = c(p,1-p))}
@@ -423,7 +422,7 @@ gfunct <- function(G){
   Glist = mglist
   
   R0net <- function(net = gr$g, All=FALSE) {
-    n  <- igraph::delete.vertices(net, which(V(tail(Glist,1)[[1]])$state=="S"))
+    n  <- igraph::delete.vertices(net, which(V(tail(Glist,1)[[1]])$num==1))
     n  <- igraph::as.directed(n, mode = c("arbitrary"))
     dg <- igraph::degree(n,  mode='out')
     if (All==TRUE) r0 <- dg
@@ -436,11 +435,9 @@ gfunct <- function(G){
   return(list(SU=SU,NS=NS,SS=SS,RM=RM,ICU=ICU,HP=HP,MS=MS,Time=Time,R0 = fro[[1]],VAge = VAge,vin = vin))
 }
 
-gfunct <- compiler::cmpfun(gfunct)
+#gfunct <- cmpfun(gfuncta)
 
-G <- gr$g #sample_gnp(1000, 1/1000)
-
-system.time(gfunct(G))
+G = gr$g
 
 glist = gfunct(G)
 glist
@@ -450,14 +447,12 @@ colnames(df)<- c("SU","NS","SS","RM","ICU","HP","MS","Time")
 mdf2 = melt(df, id.vars = "Time")
 colnames(mdf2)<- c("Time","State","Population")
 # 
-pdf("m2.pdf")
+ pdf("vacm2.pdf")
 gpl = ggplot(mdf2, aes(Time,Population, color=State)) +
   geom_line() +
-  theme_bw()+
-  theme(axis.text=element_text(size=12),
-        axis.title=element_text(size=14))
+  theme_bw()
 print(gpl)
-dev.off()
+  dev.off()
 # # 
 # # #############################3
 rep = replicate(10,gfunct(G))
@@ -466,13 +461,13 @@ reps = rep[1:8,]
 #
 # write.table(rep,"data1.csv")
 #
-myplot <- function(data){
-  ggplot(data, aes(Time,Population, color=variable)) +
-    geom_line() +
-    theme_bw()+
-    theme(axis.text=element_text(size=12),
-          axis.title=element_text(size=14))
-}
+ myplot <- function(data){
+   ggplot(data, aes(Time,Population, color=State)) +
+     geom_line() +
+     theme_bw()+
+     theme(axis.text=element_text(size=12),
+           axis.title=element_text(size=14))
+ }
 # #
 lo = c()
 lo2 = c()
@@ -491,17 +486,17 @@ for (ik in 1:ncol(reps)) {
   lo4 <-as_tibble(lo3)
   tml[ik] = list(lo4)
   mtl4 = melt(tml[ik], id.vars = "Time")
-  colnames(mtl4)<- c("Time","variable","Population")
+  colnames(mtl4)<- c("Time","State","Population")
   mlti[ik] = list(mtl4)
   #p <- myplot(mlti,1)
   #plot_list[[ik]] = p
   p <- myplot(mlti[[1]])
-  qp[[ik]] = geom_line(mlti[[ik]], mapping=aes(Time,Population, color=variable))
+  qp[[ik]] = geom_line(mlti[[ik]], mapping=aes(Time,Population, color=State))
   np = p + qp
   #print(np)
 }
-pdf("npil.pdf")
-print(np)
+pdf("vacnpil.pdf")
+ print(np)
 dev.off()
 # # for (i in 1:length(seq(1,ncol(reps),1))) {
 # #   file_name = paste("m9_", i, ".tiff", sep="")
@@ -532,7 +527,7 @@ dfr = data.frame(c(la1),c(tapply(nr0df$val, nr0df$grp, max)))
 dfr
 colnames(dfr)<- c("grp","val")
 
-pdf("mr0.pdf")
+pdf("vacmr0.pdf")
 R0plot <- ggplot(data=dfr, aes(x=grp, y=val)) +
   geom_bar(stat="identity", fill="steelblue") +
   labs(x="Age group", y = bquote(R[0]))+
@@ -541,5 +536,5 @@ R0plot <- ggplot(data=dfr, aes(x=grp, y=val)) +
         axis.title=element_text(size=14))
 print(R0plot)
 dev.off()
- 
+
 
