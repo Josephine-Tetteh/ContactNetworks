@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name=vactry
+#SBATCH --job-name=mcc
 #SBATCH --partition=fuchs
 #SBATCH --nodes=3
 #SBATCH --ntasks=40
@@ -7,4 +7,4 @@
 #SBATCH --time=240:00:30
 #SBATCH --mail-type=FAIL
 #SBATCH --extra-node-info=2:10:1
-Rscript vacnet.R
+Rscript modelCC.R

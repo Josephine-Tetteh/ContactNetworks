@@ -178,7 +178,7 @@ mx <- with(cdata, table(participants=cdata$pt_grp,contacts=cdata$cnt_grp))
 # dev.off()
 
 ###############
-N    <- 1000
+N    <- 100
 
 seed <- 123
 
@@ -222,7 +222,7 @@ Grp  <- as.numeric(cut(age, breaks=Mbrk, include.lowest=1))
 #source("gennet.R")
 gr <- genNet(N, age)
 # 
-# pdf("CCm1.pdf")
+# pdf("nbm1.pdf")
 # netp = plotNet(gr$g)
 # print(netp)
 # dev.off()
@@ -339,13 +339,9 @@ gfunct <- function(G){
   G$AdjList = get.adjlist(G,mode="out")
   totpop = length(V(G))
   vin = sample(totpop-1,1) # pick a random node
-  V(G)$nod = V(G)
-  sdf=data.frame(DC=centr_degree(G)$res,DC_r=rank(-centr_degree(G)$res,ties.method = "first"),
-                 CC=centr_clo(G)$res,CC_r=rank(centr_clo(G)$res,ties.method = "first"),
-                 BC=centr_betw(G)$res,BC_r=rank(centr_betw(G)$res,ties.method = "first"),
-                 node=V(G)$nod, age= gr$age)
-  ### vaccinate 10 nodes with highest degree centrality (hubs)
-  vacgroup = unlist(sdf[sdf$CC_r<101,7])
+  nei = neighbors(G,vin)
+  V(G)[nei]$at = V(G)[nei]
+  vacgroup = sample(V(G)[nei]$at[which(degree(G,nei)==max(degree(G,nei)))],1) # pick 1 neighbour with highest degree
   
   V(G)$state = "S"
   V(G)$duration = 0
@@ -386,15 +382,15 @@ gfunct <- function(G){
         #new_inf = c(new_inf,nb)
         # break
       } else{
-        p = 0.15
-        new_state =  sample(c("S","NS"),1,prob = c(p,1-p))}
-      for (nb in daily_contacts){
-        if (V(G)[nb]$state == "S" & new_state == "NS"){
-          V(G)[nb]$num = 2
-          new_inf = c(new_inf,nb)
+        #p = 0.5
+        new_state =  "NS" }#sample(c("S","NS"),1)#,prob = c(p,1-p))}
+        for (nb in daily_contacts){
+          if (V(G)[nb]$state == "S" & new_state == "NS"){
+            V(G)[nb]$num = 2
+            new_inf = c(new_inf,nb)
+          }
         }
       }
-    }
     m_inf = new_inf
     to = c(to,new_inf)
     tog = c(vin,to)
@@ -455,12 +451,12 @@ colnames(df)<- c("SU","NS","SS","RM","ICU","HP","MS","Time")
 mdf2 = melt(df, id.vars = "Time")
 colnames(mdf2)<- c("Time","State","Population")
 # 
-pdf("CCm2.pdf")
+pdf("nbm2.pdf")
 gpl = ggplot(mdf2, aes(Time,Population, color=State)) +
   geom_line() +
   theme_bw()+
-  theme(axis.text=element_text(size=12),
-        axis.title=element_text(size=14))
+  theme(axis.text=element_text(size=20),
+        axis.title=element_text(size=20))
 print(gpl)
 dev.off()
 # # 
@@ -475,8 +471,8 @@ myplot <- function(data){
   ggplot(data, aes(Time,Population, color=variable)) +
     geom_line() +
     theme_bw()+
-    theme(axis.text=element_text(size=12),
-          axis.title=element_text(size=14))
+    theme(axis.text=element_text(size=20),
+          axis.title=element_text(size=20))
 }
 # #
 lo = c()
@@ -505,7 +501,7 @@ for (ik in 1:ncol(reps)) {
   np = p + qp
   #print(np)
 }
-pdf("CCnpil.pdf")
+pdf("nbnpil.pdf")
 print(np)
 dev.off()
 # # for (i in 1:length(seq(1,ncol(reps),1))) {
@@ -522,28 +518,29 @@ dev.off()
 # # }
 # # dev.off()
 #
-#
-R0table = rep[9 :11,]
-nr0 = data.frame(c(unlist(R0table[1,])),c(unlist(R0table[2,])))
-colnames(nr0) = c("val","age")
-nr0df = as.data.frame(nr0)
-nr0df$grp <- cut(nr0df$ag, breaks = abreaks,labels=la1, right = FALSE)
+# #
+# R0table = rep[9 :11,]
+# nr0 = data.frame(c(unlist(R0table[1,])),c(unlist(R0table[2,])))
+# colnames(nr0) = c("val","age")
+# nr0df = as.data.frame(nr0)
+# nr0df$grp <- cut(nr0df$ag, breaks = abreaks,labels=la1, right = FALSE)
+# 
+# #
+# # nr0df2 = nr0df[order(nr0df$ag,nr0df$val),]
+# # plot(nr0df2$ag,nr0df2$val)
+# 
+# dfr = data.frame(c(la1),c(tapply(nr0df$val, nr0df$grp, max)))
+# dfr
+# colnames(dfr)<- c("grp","val")
+# 
+# pdf("nbmr0.pdf")
+# R0plot <- ggplot(data=dfr, aes(x=grp, y=val)) +
+#   geom_bar(stat="identity", fill="steelblue") +
+#   labs(x="Age group", y = bquote(R[0]))+
+#   theme_classic()+
+#   theme(axis.text=element_text(size=20),
+#         axis.title=element_text(size=20))
+# print(R0plot)
+# dev.off()
+# #################################################
 
-#
-# nr0df2 = nr0df[order(nr0df$ag,nr0df$val),]
-# plot(nr0df2$ag,nr0df2$val)
-
-dfr = data.frame(c(la1),c(tapply(nr0df$val, nr0df$grp, max)))
-dfr
-colnames(dfr)<- c("grp","val")
-
-pdf("CCmr0.pdf")
-R0plot <- ggplot(data=dfr, aes(x=grp, y=val)) +
-  geom_bar(stat="identity", fill="steelblue") +
-  labs(x="Age group", y = bquote(R[0]))+
-  theme_classic()+
-  theme(axis.text=element_text(size=12),
-        axis.title=element_text(size=14))
-print(R0plot)
-dev.off()
-#################################################

@@ -8,7 +8,7 @@ require(reshape2)
 require(magrittr)
 require(purrr)
 require(dplyr)
-#require(compiler)
+require(compiler)
 
 
 genNet <- function(N=N, age=age, n.try=100) {
@@ -427,13 +427,22 @@ gfunct <- function(G){
   VAg = which(la1==dfGAg$agegrps[vin])
   Glist = mglist
   
+  # R0net <- function(net = gr$g, All=FALSE) {
+  #   n  <- igraph::delete.vertices(net, which(V(tail(Glist,1)[[1]])$state=="S"))
+  #   n  <- igraph::as.directed(n, mode = c("arbitrary"))
+  #   dg <- igraph::degree(n,  mode='out')
+  #   if (All==TRUE) r0 <- dg
+  #   else r0 <- mean(dg)
+  #   return(list(r0,n))
+  
   R0net <- function(net = gr$g, All=FALSE) {
     n  <- igraph::delete.vertices(net, which(V(tail(Glist,1)[[1]])$state=="S"))
-    n  <- igraph::as.directed(n, mode = c("arbitrary"))
-    dg <- igraph::degree(n,  mode='out')
-    if (All==TRUE) r0 <- dg
-    else r0 <- mean(dg)
-    return(list(r0,n))
+    myr0 <- length(tog)/length(V(n))
+    # n  <- igraph::as.directed(n, mode = c("arbitrary"))
+    # dg <- igraph::degree(n,  mode='out')
+    # if (All==TRUE) r0 <- dg
+    # else r0 <- mean(dg)
+    return(list(myr0,n))
   }
   
   fro = R0net(G)
@@ -459,8 +468,8 @@ pdf("BCm2.pdf")
 gpl = ggplot(mdf2, aes(Time,Population, color=State)) +
   geom_line() +
   theme_bw()+
-  theme(axis.text=element_text(size=12),
-        axis.title=element_text(size=14))
+  theme(axis.text=element_text(size=20),
+        axis.title=element_text(size=20))
 print(gpl)
 dev.off()
 # # 
@@ -475,8 +484,8 @@ myplot <- function(data){
   ggplot(data, aes(Time,Population, color=variable)) +
     geom_line() +
     theme_bw()+
-    theme(axis.text=element_text(size=12),
-          axis.title=element_text(size=14))
+    theme(axis.text=element_text(size=20),
+          axis.title=element_text(size=20))
 }
 # #
 lo = c()
@@ -522,28 +531,29 @@ dev.off()
 # # }
 # # dev.off()
 #
-#
-R0table = rep[9 :11,]
-nr0 = data.frame(c(unlist(R0table[1,])),c(unlist(R0table[2,])))
-colnames(nr0) = c("val","age")
-nr0df = as.data.frame(nr0)
-nr0df$grp <- cut(nr0df$ag, breaks = abreaks,labels=la1, right = FALSE)
+# #
+# R0table = rep[9 :11,]
+# nr0 = data.frame(c(unlist(R0table[1,])),c(unlist(R0table[2,])))
+# colnames(nr0) = c("val","age")
+# nr0df = as.data.frame(nr0)
+# nr0df$grp <- cut(nr0df$ag, breaks = abreaks,labels=la1, right = FALSE)
+# 
+# #
+# # nr0df2 = nr0df[order(nr0df$ag,nr0df$val),]
+# # plot(nr0df2$ag,nr0df2$val)
+# 
+# dfr = data.frame(c(la1),c(tapply(nr0df$val, nr0df$grp, max)))
+# dfr
+# colnames(dfr)<- c("grp","val")
+# 
+# pdf("BCmr0.pdf")
+# R0plot <- ggplot(data=dfr, aes(x=grp, y=val)) +
+#   geom_bar(stat="identity", fill="steelblue") +
+#   labs(x="Age group", y = bquote(R[0]))+
+#   theme_classic()+
+#   theme(axis.text=element_text(size=20),
+#         axis.title=element_text(size=20))
+# print(R0plot)
+# dev.off()
+# #################################################
 
-#
-# nr0df2 = nr0df[order(nr0df$ag,nr0df$val),]
-# plot(nr0df2$ag,nr0df2$val)
-
-dfr = data.frame(c(la1),c(tapply(nr0df$val, nr0df$grp, max)))
-dfr
-colnames(dfr)<- c("grp","val")
-
-pdf("BCmr0.pdf")
-R0plot <- ggplot(data=dfr, aes(x=grp, y=val)) +
-  geom_bar(stat="identity", fill="steelblue") +
-  labs(x="Age group", y = bquote(R[0]))+
-  theme_classic()+
-  theme(axis.text=element_text(size=12),
-        axis.title=element_text(size=14))
-print(R0plot)
-dev.off()
-#################################################

@@ -178,7 +178,7 @@ mx <- with(cdata, table(participants=cdata$pt_grp,contacts=cdata$cnt_grp))
 # dev.off()
 
 ###############
-N    <- 10000
+N    <- 1000
 
 seed <- 123
 
@@ -337,8 +337,12 @@ intdyn = function(v1,ti){ #v1 here is the newly infected node
 
 gfunct <- function(G){
   G$AdjList = get.adjlist(G,mode="out")
-  vacgroup = which(as.numeric(summary(G$AdjList)[,1]) > 10)
   totpop = length(V(G))
+  Nn = 0.1*N
+  vacgroup = sample(totpop-1,Nn,replace = FALSE) # choose 10% of popn at random to vaccinate
+  
+  #vacgroup = which(as.numeric(summary(G$AdjList)[,1]) > 10)
+  
   vin = sample(totpop-1,1)
   #vin= 51
   V(G)$state = "S"
@@ -421,21 +425,31 @@ gfunct <- function(G){
   VAg = which(la1==dfGAg$agegrps[vin])
   Glist = mglist
   
+  # R0net <- function(net = gr$g, All=FALSE) {
+  #   n  <- which(V(tail(Glist,1)[[1]])$state=="NS")
+  #   n  <- igraph::as.directed(n, mode = c("arbitrary"))
+  #   dg <- igraph::degree(n,  mode='out')
+  #   if (All==TRUE) r0 <- dg
+  #   else r0 <- mean(dg)
+  #   return(list(r0,n))
+  # }
   R0net <- function(net = gr$g, All=FALSE) {
-    n  <- igraph::delete.vertices(net, which(V(tail(Glist,1)[[1]])$num==1))
-    n  <- igraph::as.directed(n, mode = c("arbitrary"))
-    dg <- igraph::degree(n,  mode='out')
-    if (All==TRUE) r0 <- dg
-    else r0 <- mean(dg)
-    return(list(r0,n))
+    n  <- igraph::delete.vertices(net, which(V(tail(Glist,1)[[1]])$state=="S"))
+    myr0 <- length(tog)/length(V(n))
+    # n  <- igraph::as.directed(n, mode = c("arbitrary"))
+    # dg <- igraph::degree(n,  mode='out')
+    # if (All==TRUE) r0 <- dg
+    # else r0 <- mean(dg)
+    return(list(myr0,n))
   }
   
   fro = R0net(G)
+  #return(list(SU=SU/N,NS=NS/N,SS=SS/N,RM=RM/N,ICU=ICU/N,HP=HP/N,MS=MS/N,Time=Time,R0 = fro[[1]],VAge = VAge,vin = vin))
   
   return(list(SU=SU,NS=NS,SS=SS,RM=RM,ICU=ICU,HP=HP,MS=MS,Time=Time,R0 = fro[[1]],VAge = VAge,vin = vin))
 }
 
-#gfunct <- cmpfun(gfuncta)
+gfunct <- compiler::cmpfun(gfunct)
 
 G = gr$g
 
@@ -465,8 +479,8 @@ reps = rep[1:8,]
    ggplot(data, aes(Time,Population, color=State)) +
      geom_line() +
      theme_bw()+
-     theme(axis.text=element_text(size=12),
-           axis.title=element_text(size=14))
+     theme(axis.text=element_text(size=20),
+           axis.title=element_text(size=20))
  }
 # #
 lo = c()
@@ -512,29 +526,29 @@ dev.off()
 # # }
 # # dev.off()
 #
-#
-R0table = rep[9 :11,]
-nr0 = data.frame(c(unlist(R0table[1,])),c(unlist(R0table[2,])))
-colnames(nr0) = c("val","age")
-nr0df = as.data.frame(nr0)
-nr0df$grp <- cut(nr0df$ag, breaks = abreaks,labels=la1, right = FALSE)
-
-#
-# nr0df2 = nr0df[order(nr0df$ag,nr0df$val),]
-# plot(nr0df2$ag,nr0df2$val)
-
-dfr = data.frame(c(la1),c(tapply(nr0df$val, nr0df$grp, max)))
-dfr
-colnames(dfr)<- c("grp","val")
-
-pdf("vacmr0.pdf")
-R0plot <- ggplot(data=dfr, aes(x=grp, y=val)) +
-  geom_bar(stat="identity", fill="steelblue") +
-  labs(x="Age group", y = bquote(R[0]))+
-  theme_classic()+
-  theme(axis.text=element_text(size=12),
-        axis.title=element_text(size=14))
-print(R0plot)
-dev.off()
-
+# #
+# R0table = rep[9 :11,]
+# nr0 = data.frame(c(unlist(R0table[1,])),c(unlist(R0table[2,])))
+# colnames(nr0) = c("val","age")
+# nr0df = as.data.frame(nr0)
+# nr0df$grp <- cut(nr0df$ag, breaks = abreaks,labels=la1, right = FALSE)
+# 
+# #
+# # nr0df2 = nr0df[order(nr0df$ag,nr0df$val),]
+# # plot(nr0df2$ag,nr0df2$val)
+# 
+# dfr = data.frame(c(la1),c(tapply(nr0df$val, nr0df$grp, max)))
+# dfr
+# colnames(dfr)<- c("grp","val")
+# 
+# pdf("vacmr0.pdf")
+# R0plot <- ggplot(data=dfr, aes(x=grp, y=val)) +
+#   geom_bar(stat="identity", fill="steelblue") +
+#   labs(x="Age group", y = bquote(R[0]))+
+#   theme_classic()+
+#   theme(axis.text=element_text(size=20),
+#         axis.title=element_text(size=20))
+# print(R0plot)
+# dev.off()
+# 
 

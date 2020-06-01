@@ -8,7 +8,7 @@ require(reshape2)
 require(magrittr)
 require(purrr)
 require(dplyr)
-#require(compiler)
+require(compiler)
 
 
 genNet <- function(N=N, age=age, n.try=100) {
@@ -178,7 +178,7 @@ mx <- with(cdata, table(participants=cdata$pt_grp,contacts=cdata$cnt_grp))
 # dev.off()
 
 ###############
-N    <- 10000
+N    <- 100
 
 seed <- 123
 
@@ -221,11 +221,11 @@ Grp  <- as.numeric(cut(age, breaks=Mbrk, include.lowest=1))
 
 #source("gennet.R")
 gr <- genNet(N, age)
-
-pdf("m1.pdf")
-netp = plotNet(gr$g)
-print(netp)
-dev.off()
+# 
+# pdf("10m1.pdf")
+# netp = plotNet(gr$g)
+# print(netp)
+# dev.off()
 
 # 
 # qqplot(degree(gr$g), ncont, main="QQ Plot", ylab="Target contact distribution")
@@ -338,11 +338,10 @@ intdyn = function(v1,ti){ #v1 here is the newly infected node
 gfunct <- function(G){
   G$AdjList = get.adjlist(G,mode="out")
   totpop = length(V(G))
-  vin = sample(totpop-1,1) # take a random person
-  vacin = sample(totpop-1,50)
-  vacgroup = unlist(lapply(vacin, function(x) neighbors(G,x))) #which(as.numeric(summary(G$AdjList)[,1]) > 10)
-  #vin= 51
-  V(G)$state = "S"
+  vin = sample(totpop-1,1) # take a random person to initiate infection
+  Nn = 0.1*N
+  vacin = sample(totpop-1,Nn,replace = FALSE) # choose 10% of popn at random
+  vacgroup = unlist(lapply(vacin, function(x) neighbors(G,x))) #vaccinate neighbours of random person V(G)$state = "S"
   V(G)$duration = 0
   V(G)$num = 1
   V(G)[vin]$state = "NS"
@@ -350,7 +349,7 @@ gfunct <- function(G){
   V(G)[vin]$num = 3
   V(G)[vacgroup]$state = "RM"
   #V(G)[vacgroup]$num = 0
-  V(G)[vacgroup]$duration = 25
+  V(G)[vacgroup]$duration = 50
   # 
   NS = c()
   SS = c()
@@ -432,8 +431,9 @@ gfunct <- function(G){
   }
   
   fro = R0net(G)
-  
   return(list(SU=SU,NS=NS,SS=SS,RM=RM,ICU=ICU,HP=HP,MS=MS,Time=Time,R0 = fro[[1]],VAge = VAge,vin = vin))
+  
+  #return(list(SU=SU/N,NS=NS/N,SS=SS/N,RM=RM/N,ICU=ICU/N,HP=HP/N,MS=MS/N,Time=Time,R0 = fro[[1]],VAge = VAge,vin = vin))
 }
 
 gfunct <- compiler::cmpfun(gfunct)
@@ -450,12 +450,12 @@ colnames(df)<- c("SU","NS","SS","RM","ICU","HP","MS","Time")
 mdf2 = melt(df, id.vars = "Time")
 colnames(mdf2)<- c("Time","State","Population")
 # 
-pdf("m2.pdf")
+pdf("10m2.pdf")
 gpl = ggplot(mdf2, aes(Time,Population, color=State)) +
   geom_line() +
   theme_bw()+
-  theme(axis.text=element_text(size=12),
-        axis.title=element_text(size=14))
+  theme(axis.text=element_text(size=20),
+        axis.title=element_text(size=20))
 print(gpl)
 dev.off()
 # # 
@@ -500,7 +500,7 @@ for (ik in 1:ncol(reps)) {
   np = p + qp
   #print(np)
 }
-pdf("npil.pdf")
+pdf("10npil.pdf")
 print(np)
 dev.off()
 # # for (i in 1:length(seq(1,ncol(reps),1))) {
@@ -517,29 +517,29 @@ dev.off()
 # # }
 # # dev.off()
 #
-#
-R0table = rep[9 :11,]
-nr0 = data.frame(c(unlist(R0table[1,])),c(unlist(R0table[2,])))
-colnames(nr0) = c("val","age")
-nr0df = as.data.frame(nr0)
-nr0df$grp <- cut(nr0df$ag, breaks = abreaks,labels=la1, right = FALSE)
-
-#
-# nr0df2 = nr0df[order(nr0df$ag,nr0df$val),]
-# plot(nr0df2$ag,nr0df2$val)
-
-dfr = data.frame(c(la1),c(tapply(nr0df$val, nr0df$grp, max)))
-dfr
-colnames(dfr)<- c("grp","val")
-
-pdf("mr0.pdf")
-R0plot <- ggplot(data=dfr, aes(x=grp, y=val)) +
-  geom_bar(stat="identity", fill="steelblue") +
-  labs(x="Age group", y = bquote(R[0]))+
-  theme_classic()+
-  theme(axis.text=element_text(size=12),
-        axis.title=element_text(size=14))
-print(R0plot)
-dev.off()
- 
+# #
+# R0table = rep[9 :11,]
+# nr0 = data.frame(c(unlist(R0table[1,])),c(unlist(R0table[2,])))
+# colnames(nr0) = c("val","age")
+# nr0df = as.data.frame(nr0)
+# nr0df$grp <- cut(nr0df$ag, breaks = abreaks,labels=la1, right = FALSE)
+# 
+# #
+# # nr0df2 = nr0df[order(nr0df$ag,nr0df$val),]
+# # plot(nr0df2$ag,nr0df2$val)
+# 
+# dfr = data.frame(c(la1),c(tapply(nr0df$val, nr0df$grp, max)))
+# dfr
+# colnames(dfr)<- c("grp","val")
+# 
+# pdf("10mr0.pdf")
+# R0plot <- ggplot(data=dfr, aes(x=grp, y=val)) +
+#   geom_bar(stat="identity", fill="steelblue") +
+#   labs(x="Age group", y = bquote(R[0]))+
+#   theme_classic()+
+#   theme(axis.text=element_text(size=12),
+#         axis.title=element_text(size=14))
+# print(R0plot)
+# dev.off()
+#  
 
