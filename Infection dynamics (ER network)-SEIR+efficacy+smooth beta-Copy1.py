@@ -106,9 +106,7 @@ def simfxn(Time,popul):
                 if g.vs[vnb]["state"] == "E": 
                     somenb.append(vnb)
             newnb = g.neighbors(vnb) not in somenb
-            g.vs[newnb]["state"] = g.vs[newnb]["state"] 
-                #                     g.vs[vn.index]["duration"] = 50
-                             
+            g.vs[newnb]["state"] = g.vs[newnb]["state"]                             
         for m in g.vs.select(state_eq = "I"): #iterates through each node in the network
             g.vs[m.index]["duration"] += 1 #from day 0 to infect_len this node continues to infect                                
             if g.vs[m.index]["duration"] in range(21,Time):
@@ -127,7 +125,7 @@ def simfxn(Time,popul):
 
 
 Time = 400
-popul = 100
+popul = 10000
 simout=simfxn(Time,popul)
 
 
