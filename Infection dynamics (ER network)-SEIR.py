@@ -13,7 +13,7 @@ import datetime
 import matplotlib.dates as mdates
 from matplotlib.dates import DayLocator, HourLocator, DateFormatter, drange, date2num
 import numpy as np
-import random
+
 font = {'family': 'serif',
         'color':  'black',
         'weight': 'normal',
@@ -53,9 +53,25 @@ def double_smoothlog(time, bound1 , bound2, rate1 , rate2 , midpoint1 , midpoint
 # In[4]:
 
 
+# time = 300
+# bound1 = 0.02
+# bound2 = 0.01
+# rate1 = 0.1
+# rate2 = 0.3
+# midpoint1 = 50
+# midpoint2 = 126
+
+
+# In[5]:
+
+
 def simfxn(Time,popul):
+#     bound1 = 0.02
+#     bound2 = 0.01
+#     rate1 = 0.1
+#     rate2 = 0.3
     bound1 = 0.028
-    bound2 = 0.01
+    bound2 = 0.009
     rate1 = 0.09
     rate2 = 0.04
     midpoint1 = 50
@@ -66,82 +82,83 @@ def simfxn(Time,popul):
     pop = g.vcount()
     g.vs["state"] = "S"
     g.vs["duration"] = 0
-    #randomly select % of the population to be vaccinated
-    perc_vac = int(0.1*pop)
-    vac_eff = 0.4  # vaccine efficacy
-    init_vac_grp = random.sample(list(range(pop)), perc_vac)
-    g.vs[init_vac_grp]["state"] = "V"
-    #randomly select an infected node to start epidemic
     i = rd.randint(0, pop-1)
     g.vs[i]["state"] = "E"
-    
-    nb_S = [pop-perc_vac]
+    nb_S = [pop]
     nb_E = [1]
     nb_I = [0]
     nb_R = [0]
-    nb_V = [len(init_vac_grp)]
-    exposed_vac = []
     Time = Time 
-    count = 0 
-    for time in range(Time): #no. of days     
+    for time in range(Time): #no. of days 
+#         if time in range(50,126):
+#             beta = 0.01
+# #         elif time in range(81,120):
+# #             beta = 0.006
+# #         elif time in range(81,Time):
+# #             beta = 0.01
+#         else:
+#             beta = beta1     
         for n in g.vs.select(state_eq = "E"): #iterates through each node in the network
-            g.vs[n.index]["duration"] += 1 
+            g.vs[n.index]["duration"] += 1 #from day 0 to infect_len this node continues to infect
             if g.vs[n.index]["duration"] in range(10,21):  #(7,21)
                 g.vs[n.index]["state"] = 'I'
-                count = count + 1
             else:
                 for nb in g.neighbors(n): #iterates through neighbours of that node
                     if g.vs[nb]["state"] == "S": #if node is infected...
                         s = rd.random() #random state
                         if s <= beta[time]:
-                            g.vs[nb]["state"] = "E" 
-                    if g.vs[nb]["state"] == "V": #if node is vaccinated...
-                        u = rd.random() #random state
-                        if u <= (1-vac_eff)*beta[time]:
-                            g.vs[nb]["state"] = "E" 
-                            exposed_vac.append(nb)
-                          
+                            g.vs[nb]["state"] = "E"         
         for m in g.vs.select(state_eq = "I"): #iterates through each node in the network
             g.vs[m.index]["duration"] += 1 #from day 0 to infect_len this node continues to infect                                
             if g.vs[m.index]["duration"] in range(21,Time):
                 g.vs[m.index]["state"] = 'R'
-                
+
+                                      
         nb_S.append(len(g.vs.select(state_eq = "S"))) #no. of susceptibles in population
         nb_E.append(len(g.vs.select(state_eq = "E"))) #no. of recovereds in population
         nb_I.append(len(g.vs.select(state_eq = "I"))) #no. of infecteds in population
         nb_R.append(len(g.vs.select(state_eq = "R"))) #no. of recovereds in population
-        nb_V.append(len(g.vs.select(state_eq = "V"))) #no. of recovereds in population
+#         nb_V.append(len(g.vs.select(state_eq = "V"))) #no. of recovereds in population
 
-    return(nb_S,nb_E,nb_I,nb_R,nb_V,count)
-
-
-# In[5]:
-
-
-Time = 450
-popul = 100000
-simout=simfxn(Time,popul)
+    return(nb_S,nb_E,nb_I,nb_R)
 
 
 # In[6]:
 
 
-datavector = []
-for i in range(50):          #repeat simulation 10 times
-    simu = simfxn(Time,popul)
-    datavector.append(simu)
+Time = 400
+# Vlim = 0.5
+# probs_vac = 0#.29 #0.45
+# beta = 0.028# 0.025#0.0170
+popul = 1000000
+simout=simfxn(Time,popul)
 
 
 # In[7]:
 
 
-plt.figure(figsize=(12, 5))
+# simout[1]
 
-plt.plot([x/popul for x in simout[0]], label='S',color = '#1f77b4')
+
+# In[ ]:
+
+
+datavector = []
+for i in range(5):          #repeat simulation 10 times
+    simu = simfxn(Time,popul)
+    datavector.append(simu)
+
+
+# In[ ]:
+
+
+plt.figure(figsize=(8, 4))
+
+# plt.plot([x/popul for x in simout[0]], label='S',color = '#1f77b4')
 plt.plot([x/popul for x in simout[1]], label='E',color = 'yellow')
 plt.plot([x/popul for x in simout[2]], label='I',color = '#d62728')
 plt.plot([x/popul for x in simout[3]], label='R',color = '#2ca02c')
-plt.plot([x/popul for x in simout[4]], label='V',color = '#ff7f0e')
+# plt.plot([x/pop for x in simout[4]], label='V',color = '#ff7f0e')
 plt.legend(loc='right')
 
 s_final = []
@@ -157,22 +174,17 @@ iList = []
 rList = []
 
 i_max = []
-
-perc_inf = []
 for n in datavector:
     sList = [x / popul for x in n[0]]
     eList = [x / popul for x in n[1]]
     iList = [x / popul for x in n[2]]
     rList = [x / popul for x in n[3]]
-    vList = [x / popul for x in n[4]]
-    num_inf = [n[5] / popul ]
-
  
     plt.plot(sList,color = '#1f77b4')
     plt.plot(eList,color = 'yellow')
     plt.plot(iList,color = '#d62728')
     plt.plot(rList,color = '#2ca02c')
-    plt.plot(vList,color = '#ff7f0e')
+#     plt.plot(vList,color = '#ff7f0e')
     
     s_final.append(n[0][-1])
     e_final.append(n[1][-1])
@@ -182,11 +194,11 @@ for n in datavector:
     
     i_each.append(iList)
     i_max.append(max(iList))
-    
-    perc_inf.append(num_inf)
-    
-plt.axvspan(50, 126, color='gray', alpha=0.5, lw=0)
-# plt.legend(loc='right')
+#plt.legend(loc=0, frameon=False)
+# plt.axvline(x=60)
+# plt.axvline(x=100)
+plt.axvspan(50, 110, color='gray', alpha=0.5, lw=0)
+
 plt.tick_params(axis = 'both', which = 'major', labelsize = 20)
 plt.ylabel('Population', fontsize=30) 
 plt.xlabel('Time(days)', fontsize=30)
@@ -194,32 +206,15 @@ x=list(range(Time))
 plt.xticks(np.arange(min(x), max(x)+20, 50.0))
 # plt.show()
 
-plt.savefig('%_efficacy.pdf', bbox_inches='tight')
+
+# plt.savefig('plotapp.pdf', bbox_inches='tight')
+#plt.savefig('toplot^6.pdf', bbox_inches='tight')
 
 
-# In[12]:
+# In[ ]:
 
 
-# perc_inf
-
-
-# In[9]:
-
-
-# plt.plot(perc_inf)
-
-
-# In[14]:
-
-
-avg = np.mean(perc_inf)*100
-
-
-# In[22]:
-
-
-with open("avg.txt", "w") as text_file:
-    text_file.write("%a" %avg)
+plt.plot([x/popul for x in simout[2]], label='I',color = '#d62728')
 
 
 # In[ ]:
