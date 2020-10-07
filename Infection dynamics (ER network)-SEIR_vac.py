@@ -54,10 +54,10 @@ def double_smoothlog(time, bound1 , bound2, rate1 , rate2 , midpoint1 , midpoint
 
 
 def simfxn(Time,popul):
-    bound1 = 0.028
-    bound2 = 0.01
+    bound1 = 0.025
+    bound2 = 0.007
     rate1 = 0.09
-    rate2 = 0.04
+    rate2 = 0.06
     midpoint1 = 50
     midpoint2 = 126
     beta = double_smoothlog(Time, bound1 , bound2, rate1 , rate2 , midpoint1 , midpoint2)
@@ -73,7 +73,9 @@ def simfxn(Time,popul):
     g.vs[init_vac_grp]["state"] = "V"
     #randomly select an infected node to start epidemic
     i = rd.randint(0, pop-1)
-    g.vs[i]["state"] = "E"
+#     g.vs[i]["state"] = "E"
+    if g.vs[i]["state"] != 'V':   # if initial node is not vaccinated, then set it as exposed
+        g.vs[i]["state"] = "E"
     
     nb_S = [pop-perc_vac]
     nb_E = [1]
@@ -89,20 +91,28 @@ def simfxn(Time,popul):
             if g.vs[n.index]["duration"] in range(10,21):  #(7,21)
                 g.vs[n.index]["state"] = 'I'
                 count = count + 1
-            else:
-                for nb in g.neighbors(n): #iterates through neighbours of that node
-                    if g.vs[nb]["state"] == "S": #if node is infected...
-                        s = rd.random() #random state
-                        if s <= beta[time]:
-                            g.vs[nb]["state"] = "E" 
-                    if g.vs[nb]["state"] == "V": #if node is vaccinated...
-                        u = rd.random() #random state
-                        if u <= (1-vac_eff)*beta[time]:
-                            g.vs[nb]["state"] = "E" 
-                            exposed_vac.append(nb)
+#             else:
+            for nb in g.neighbors(n): #iterates through neighbours of that node
+                if g.vs[nb]["state"] == "S": #if node is infected...
+#                     s = rd.random() #random state
+                    s=np.random.binomial(1, beta[time],1)
+                    if s == 1:
+                        g.vs[nb]["state"] = "E" 
+                if g.vs[nb]["state"] == "V": #if node is vaccinated...
+#                     u = rd.random() #random state
+                    u=np.random.binomial(1, (1-vac_eff)*beta[time],1)
+                    if u == 1:
+                        g.vs[nb]["state"] = "E" 
+                        exposed_vac.append(nb)
                           
         for m in g.vs.select(state_eq = "I"): #iterates through each node in the network
             g.vs[m.index]["duration"] += 1 #from day 0 to infect_len this node continues to infect                                
+            for nbm in g.neighbors(m): #iterates through neighbours of that node
+                if g.vs[nbm]["state"] == "S": #if node is infected...
+#                     j = rd.random() #random state
+                    j=np.random.binomial(1, beta[time],1)
+                    if j == 1:
+                        g.vs[nbm]["state"] = "E"
             if g.vs[m.index]["duration"] in range(21,Time):
                 g.vs[m.index]["state"] = 'R'
                 
