@@ -50,7 +50,7 @@ def double_smoothlog(time, bound1 , bound2, rate1 , rate2 , midpoint1 , midpoint
     return(result)
 
 
-# In[ ]:
+# In[6]:
 
 
 def simfxn(Time,popul):
@@ -67,17 +67,10 @@ def simfxn(Time,popul):
     g.vs["state"] = "S"
     g.vs["duration"] = 0
     g.vs["somecol"] = 'THB'
-    #randomly select % of the population to be vaccinated
-#     perc_vac = int(0*pop)
-    vac_eff = 0  # vaccine efficacy
-#     init_vac_grp = random.sample(list(range(pop)), perc_vac)
-#     g.vs[init_vac_grp]["state"] = "V"
+    vac_eff = 0.1  # vaccine efficacy
     #randomly select an infected node to start epidemic
     i = rd.randint(0, pop-1)
-    g.vs[i]["state"] = "E"
-#     if g.vs[i]["state"] != 'V':   # if initial node is not vaccinated, then set it as exposed
-#         g.vs[i]["state"] = "E"
-    
+    g.vs[i]["state"] = "E"  
     nb_S = [pop]
     nb_E = [1]
     nb_I = [0]
@@ -87,10 +80,11 @@ def simfxn(Time,popul):
     Time = Time 
     count = 0 
     inf_nodes = []
+    sec_contacts = []
     g.vs["tcount"] = 0 
     for time in range(Time): #no. of days  
         cutime = time
-        if len(g.vs.select(state_eq = "E"))< int(0.1*popul):
+        if len(g.vs.select(state_eq = "E"))< int(0.01*popul):
             for n in g.vs.select(state_eq = "E"): #iterates through each node in the network
                 g.vs[n.index]["duration"] += 1 
                 if g.vs[n.index]["duration"] in range(7,21):  #(7,21)
@@ -112,18 +106,29 @@ def simfxn(Time,popul):
 
         else:
             for inf in g.vs.select(state_eq = "E"):
-                for na in g.neighbors(inf):
+                for na in g.neighbors(inf):  # select neighbour/contact of exposed nodes to vaccinate
                     g.vs[na]["somecol"] = 'myo'   
                     inf_nodes.append(na)
 
             for ele in g.vs.select(somecol_eq = 'myo'):
-                 g.vs[ele.index]["tcount"] += 1
+                g.vs[ele.index]["tcount"] += 1
+                for elenb in g.neighbors(ele):         # select neighbour/contact of contact to vaccinate  
+                    g.vs[elenb]["somecol"] = 'second'
+                    sec_contacts.append(elenb)
+
+            for sec in g.vs.select(somecol_eq = 'second'):
+                g.vs[sec.index]["tcount"] += 1
 
             for then in inf_nodes:
-                if g.vs[then]["tcount"]>= 3 and g.vs[then]['state'] == 'S':
-                    B=np.random.binomial(1, (1-vac_eff)*beta[time],1)
+                if g.vs[then]["tcount"]>= 3:
+                    B = np.random.binomial(1, (1-vac_eff)*beta[time],1)  #vaccinate first contacts after 3 days
                     if B == 1:
                         g.vs[then]["state"] = "V"
+            for scon in sec_contacts:
+                if g.vs[scon]["tcount"]>= 3:
+                    C = np.random.binomial(1, (1-vac_eff)*beta[time],1)  # vaccinate conact of contact after 3 days
+                    if C == 1:
+                        g.vs[scon]["state"] = "V"
 
             for n in g.vs.select(state_eq = "E"): #iterates through each node in the network
                 g.vs[n.index]["duration"] += 1 
@@ -157,7 +162,7 @@ def simfxn(Time,popul):
     return(nb_S,nb_E,nb_I,nb_R,nb_V,cutime,g.vs['state'])
 
 
-# In[ ]:
+# In[7]:
 
 
 Time = 400
@@ -165,16 +170,16 @@ popul = 100000
 simout=simfxn(Time,popul)
 
 
-# In[ ]:
+# In[8]:
 
 
 datavector = []
-for i in range(50):          #repeat simulation 50 times
+for i in range(10):          #repeat simulation 50 times
     simu = simfxn(Time,popul)
     datavector.append(simu)
 
 
-# In[ ]:
+# In[9]:
 
 
 plt.figure(figsize=(9, 5))
@@ -237,12 +242,6 @@ plt.xticks(np.arange(min(x), max(x)+20, 50.0))
 plt.show()
 
 # plt.savefig('Ring_vac.pdf', bbox_inches='tight')
-
-
-# In[ ]:
-
-
-
 
 
 # In[ ]:
