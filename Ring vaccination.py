@@ -107,10 +107,10 @@ def simfxn(Time,popul):
         else:
             for inf in g.vs.select(state_eq = "E"):
                 for na in g.neighbors(inf):  # select neighbour/contact of exposed nodes to vaccinate
-                    g.vs[na]["somecol"] = 'myo'   
+                    g.vs[na]["somecol"] = 'first'   
                     inf_nodes.append(na)
 
-            for ele in g.vs.select(somecol_eq = 'myo'):
+            for ele in g.vs.select(somecol_eq = 'first'):
                 g.vs[ele.index]["tcount"] += 1
                 for elenb in g.neighbors(ele):         # select neighbour/contact of contact to vaccinate  
                     g.vs[elenb]["somecol"] = 'second'
