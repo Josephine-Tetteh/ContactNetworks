@@ -3,7 +3,7 @@
 
 # In[1]:
 
-
+#import
 import igraph as ig
 import math
 import random as rd
@@ -80,18 +80,18 @@ def simfxn(Time,popul):
 #     g.vs[i]["state"] = "E"
     if g.vs[i]["state"] != 'V':   # if initial node is not vaccinated, then set it as exposed
         g.vs[i]["state"] = "E"
-    
+
     nb_S = [pop-perc_vac]
     nb_E = [1]
     nb_I = [0]
     nb_R = [0]
     nb_V = [len(init_vac_grp)]
     exposed_vac = []
-    Time = Time 
-    count = 0 
-    for time in range(Time): #no. of days     
+    Time = Time
+    count = 0
+    for time in range(Time): #no. of days
         for n in g.vs.select(state_eq = "E"): #iterates through each node in the network
-            g.vs[n.index]["duration"] += 1 
+            g.vs[n.index]["duration"] += 1
             if g.vs[n.index]["duration"] in range(7,17):  #(7,21)
                 g.vs[n.index]["state"] = 'I'
                 count = count + 1
@@ -101,16 +101,16 @@ def simfxn(Time,popul):
 #                     s = rd.random() #random state
                     s=np.random.binomial(1, beta[time],1)
                     if s == 1:
-                        g.vs[nb]["state"] = "E" 
+                        g.vs[nb]["state"] = "E"
                 if g.vs[nb]["state"] == "V": #if node is vaccinated...
 #                     u = rd.random() #random state
                     u=np.random.binomial(1, (1-vac_eff)*beta[time],1)
                     if u == 1:
-                        g.vs[nb]["state"] = "E" 
+                        g.vs[nb]["state"] = "E"
                         exposed_vac.append(nb)
-                          
+
         for m in g.vs.select(state_eq = "I"): #iterates through each node in the network
-            g.vs[m.index]["duration"] += 1 #from day 0 to infect_len this node continues to infect                                
+            g.vs[m.index]["duration"] += 1 #from day 0 to infect_len this node continues to infect
             for nbm in g.neighbors(m): #iterates through neighbours of that node
                 if g.vs[nbm]["state"] == "S": #if node is infected...
 #                     j = rd.random() #random state
@@ -119,7 +119,7 @@ def simfxn(Time,popul):
                         g.vs[nbm]["state"] = "E"
             if g.vs[m.index]["duration"] in range(17,Time):
                 g.vs[m.index]["state"] = 'R'
-                
+
         nb_S.append(len(g.vs.select(state_eq = "S"))) #no. of susceptibles in population
         nb_E.append(len(g.vs.select(state_eq = "E"))) #no. of recovereds in population
         nb_I.append(len(g.vs.select(state_eq = "I"))) #no. of infecteds in population
@@ -182,28 +182,28 @@ for n in datavector:
     vList = [x / popul for x in n[4]]
     num_inf = [n[5] / popul ]
 
- 
+
     plt.plot(sList,color = '#1f77b4')
     plt.plot(eList,color = 'yellow')
     plt.plot(iList,color = '#d62728')
     plt.plot(rList,color = '#2ca02c')
     plt.plot(vList,color = '#ff7f0e')
-    
+
     s_final.append(n[0][-1])
     e_final.append(n[1][-1])
     i_final.append(n[2][-1])
     r_final.append(n[3][-1])
 #     v_final.append(n[4][-1])
-    
+
     i_each.append(iList)
     i_max.append(max(iList))
-    
+
     perc_inf.append(num_inf)
-    
+
 # plt.axvspan(50, 126, color='gray', alpha=0.5, lw=0)
 # plt.legend(loc='right')
 plt.tick_params(axis = 'both', which = 'major', labelsize = 20)
-plt.ylabel('Population', fontsize=30) 
+plt.ylabel('Population', fontsize=30)
 plt.xlabel('Time(days)', fontsize=30)
 x=list(range(Time))
 plt.xticks(np.arange(min(x), max(x)+20, 50.0))
@@ -309,7 +309,3 @@ with open("astd.txt", "w") as text_file:
 
 
 # In[ ]:
-
-
-
-
